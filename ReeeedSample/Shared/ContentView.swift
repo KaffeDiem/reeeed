@@ -21,6 +21,7 @@ struct ContentView: View {
                 ArticleButton(title: "Test Article (image at top)", url: "https://9to5mac.com/2023/09/08/apple-iphone-15-event-what-to-expect/")
                 ArticleButton(title: "Unextractable Page", url: "https://google.com")
                 ArticleButton(title: "Extract ISO Latin", url: "https://www.politicargentina.com/notas/202411/62138-are-you-pistarini-el-comico-posteo-de-la-afa-tras-el-episodio-entre-dillom-y-el-tuitero-libertario.html")
+                ArticleButton(title: "German Article", url: "https://www.tagesschau.de/inland/gesellschaft/modular-synthesizer-100.html")
             }
             .frame(minWidth: 200)
         }
@@ -49,7 +50,10 @@ struct ArticleButton: View {
     }
 
     @ViewBuilder private var reader: some View {
-        ReeeederView(url: URL(string: url)!, options: .init(theme: theme, onLinkClicked: linkClicked))
+        ReeeederView(
+            url: URL(string: url)!,
+            options: .init(theme: theme, extractor: .mercury, onLinkClicked: linkClicked)
+        )
     }
 
     private func linkClicked(_ url: URL) {

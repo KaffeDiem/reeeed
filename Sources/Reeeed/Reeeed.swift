@@ -17,7 +17,7 @@ struct PrintLogger: Logger {
 public enum Reeeed {
     public static var logger: Logger = PrintLogger()
 
-    public static func warmup(extractor: Extractor = .mercury) {
+    public static func warmup(extractor: Extractor) {
         switch extractor {
         case .mercury:
             MercuryExtractor.shared.warmUp()
@@ -26,7 +26,7 @@ public enum Reeeed {
         }
     }
 
-    public static func extractArticleContent(url: URL, html: String, extractor: Extractor = .mercury) async throws -> ExtractedContent {
+    public static func extractArticleContent(url: URL, html: String, extractor: Extractor) async throws -> ExtractedContent {
         return try await withCheckedThrowingContinuation({ continuation in
             DispatchQueue.main.async {
                 switch extractor {
@@ -62,16 +62,20 @@ public enum Reeeed {
         }
     }
 
-    public static func fetchAndExtractContent(fromURL url: URL, extractor: Extractor = .mercury) async throws -> ReadableDoc {
-        DispatchQueue.main.async { Reeeed.warmup() }
+    public static func fetchAndExtractContent(fromURL url: URL, extractor: Extractor) async throws -> ReadableDoc {
+        DispatchQueue.main.async {
+            Reeeed.warmup(extractor: extractor)
+        }
         
         let (data, response) = try await URLSession.shared.data(from: url)
-        guard let html = String(data: data, encoding: .utf8) else {
+        
+        guard let html = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .isoLatin1) else {
             throw ExtractionError.DataIsNotString
         }
         let baseURL = response.url ?? url
-        let content = try await Reeeed.extractArticleContent(url: baseURL, html: html)
+        let content = try await Reeeed.extractArticleContent(url: baseURL, html: html, extractor: extractor)
         let extractedMetadata = try? await SiteMetadata.extractMetadata(fromHTML: html, baseURL: baseURL)
+        
         guard let doc =  ReadableDoc(
             extracted: content,
             insertHeroImage: nil,
@@ -80,9 +84,7 @@ public enum Reeeed {
         else {
             throw ExtractionError.MissingExtractionData
         }
+        
         return doc
-
-//        let styledHTML = Reeeed.wrapHTMLInReaderStyling(html: extractedHTML, title: content.title ?? extractedMetadata?.title ?? "", baseURL: baseURL, author: content.author, heroImage: extractedMetadata?.heroImage, includeExitReaderButton: true, theme: theme, date: content.datePublished)
-//        return .init(metadata: extractedMetadata, extracted: content, styledHTML: styledHTML, baseURL: baseURL)
     }
 }

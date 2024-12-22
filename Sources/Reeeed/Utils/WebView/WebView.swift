@@ -18,7 +18,14 @@ struct WebView: NSViewRepresentable {
     typealias NSViewType = _WebViewContainer
 
     var content: WebContent
-    var onEvent: ((WebViewEvent) -> Void)? = nil
+    var onEvent: ((WebViewEvent) -> Void)?
+    var scrollViewDidScroll: ((CGPoint) -> Void)?
+    
+    init(content: WebContent, onEvent: ((WebViewEvent) -> Void)? = nil, scrollViewDidScroll: ((CGPoint) -> Void)? = nil) {
+        self.content = content
+        self.onEvent = onEvent
+        self.scrollViewDidScroll = scrollViewDidScroll
+    }
 
     func makeNSView(context: Context) -> _WebViewContainer {
         return _WebViewContainer()
@@ -58,10 +65,23 @@ struct WebView: UIViewRepresentable {
     typealias UIViewType = _WebViewContainer
 
     var content: WebContent
-    var onEvent: ((WebViewEvent) -> Void)? = nil
+    var onEvent: ((WebViewEvent) -> Void)?
+    let scrollViewDidScroll: ((CGPoint) -> Void)?
+    
+    init(
+        content: WebContent,
+        onEvent: ((WebViewEvent) -> Void)? = nil,
+        scrollViewDidScroll: ((CGPoint) -> Void)? = nil
+    ) {
+        self.content = content
+        self.onEvent = onEvent
+        self.scrollViewDidScroll = scrollViewDidScroll
+    }
 
     func makeUIView(context: Context) -> _WebViewContainer {
-        return _WebViewContainer()
+        let container = _WebViewContainer()
+        container.scrollViewDidScroll = scrollViewDidScroll
+        return container
     }
 
     func updateUIView(_ uiView: _WebViewContainer, context: Context) {
@@ -70,8 +90,9 @@ struct WebView: UIViewRepresentable {
     }
 }
 
-class _WebViewContainer: UIView {
+class _WebViewContainer: UIView, UIScrollViewDelegate {
     var onEvent: ((WebViewEvent) -> Void)?
+    var scrollViewDidScroll: ((CGPoint) -> Void)?
 
     var scrollPosRounded: CGFloat = 0 {
         didSet(old) {
@@ -119,6 +140,11 @@ class _WebViewContainer: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         contentView?.frame = bounds
+        contentView?.scrollView.delegate = self
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        scrollViewDidScroll?(scrollView.contentOffset)
     }
 }
 

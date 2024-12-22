@@ -19,10 +19,12 @@ public struct ReeeederViewOptions {
 public struct ReeeederView: View {
     var url: URL
     var options: ReeeederViewOptions
+    var scrollViewDidScroll: ((CGPoint) -> Void)?
 
-    public init(url: URL, options: ReeeederViewOptions = .init()) {
+    public init(url: URL, options: ReeeederViewOptions = .init(), scrollViewDidScroll: ((CGPoint) -> Void)? = nil) {
         self.url = url
         self.options = options
+        self.scrollViewDidScroll = scrollViewDidScroll
     }
 
     // MARK: - Implementation
@@ -62,7 +64,7 @@ public struct ReeeederView: View {
         case .failedToExtractContent:
             FallbackWebView(url: url, onLinkClicked: onLinkClicked, title: $titleFromFallbackWebView)
         case .extractedContent(let html, let baseURL, _):
-            ReaderWebView(baseURL: baseURL, html: html, onLinkClicked: onLinkClicked)
+            ReaderWebView(baseURL: baseURL, html: html, onLinkClicked: onLinkClicked, scrollViewDidScroll: scrollViewDidScroll)
         }
     }
 
@@ -104,12 +106,13 @@ public struct ReeeederView: View {
 private struct FallbackWebView: View {
     var url: URL
     var onLinkClicked: ((URL) -> Void)?
+    var scrollViewDidScroll: ((CGPoint) -> Void)?
     @Binding var title: String?
 
     @StateObject private var content = WebContent()
 
     var body: some View {
-        WebView(content: content)
+        WebView(content: content, scrollViewDidScroll: scrollViewDidScroll)
             .onAppear {
                 setupLinkHandler()
             }
@@ -136,12 +139,13 @@ private struct ReaderWebView: View {
     var baseURL: URL
     var html: String
     var onLinkClicked: ((URL) -> Void)?
+    var scrollViewDidScroll: ((CGPoint) -> Void)?
     // TODO: Handle "wants to exit reader"
 
     @StateObject private var content = WebContent(transparent: true)
 
     var body: some View {
-        WebView(content: content)
+        WebView(content: content, scrollViewDidScroll: scrollViewDidScroll)
             .onAppear {
                 setupLinkHandler()
             }

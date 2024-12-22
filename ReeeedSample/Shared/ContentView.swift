@@ -52,8 +52,9 @@ struct ArticleButton: View {
     @ViewBuilder private var reader: some View {
         ReeeederView(
             url: URL(string: url)!,
-            options: .init(theme: theme, extractor: .mercury, onLinkClicked: linkClicked)
-        )
+            options: .init(theme: theme, extractor: .mercury, onLinkClicked: linkClicked)) { point in
+                print("Scrolled to \(point)")
+            }
     }
 
     private func linkClicked(_ url: URL) {
